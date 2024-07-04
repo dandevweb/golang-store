@@ -1,11 +1,26 @@
 package main
 
 import (
+	"database/sql"
 	"net/http"
 	"text/template"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
+func connectDatabase() *sql.DB {
+	dsn := "root:@tcp(localhost:3306)/go_store"
+	db, err := sql.Open("mysql", dsn)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return db
+}
+
 type Product struct {
+	Id                int
 	Name, Description string
 	Price             float64
 	Quantity          int
@@ -19,12 +34,35 @@ func main() {
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
-	products := []Product{
-		{Name: "Camiseta", Description: "Azul, bem bonita", Price: 39.90, Quantity: 5},
-		{"Tênis", "Confortável", 89, 3},
-		{"Fone de Ouvido", "Muito bom", 59, 2},
-		{"Produto Novo", "Descrição de teste", 1.99, 1},
+	db := connectDatabase()
+
+	query, err := db.Query("select * from products")
+	if err != nil {
+		panic(err)
+	}
+
+	p := Product{}
+	products := []Product{}
+
+	for query.Next() {
+		var id, quantity int
+		var name, description string
+		var price float64
+
+		err = query.Scan(&id, &name, &description, &price, &quantity)
+
+		if err != nil {
+			panic(err.Error())
+		}
+		p.Name = name
+		p.Description = description
+		p.Price = price
+		p.Quantity = quantity
+
+		products = append(products, p)
 	}
 
 	temp.ExecuteTemplate(w, "Index", products)
+
+	defer db.Close()
 }
