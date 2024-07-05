@@ -26,6 +26,7 @@
                             <th>Descrição</th>
                             <th>Preço</th>
                             <th>Quantidade</th>
+                            <th>Excluir</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -35,6 +36,9 @@
                                 <td>{{ .Description }}</td>
                                 <td>{{ .Price }}</td>
                                 <td>{{ .Quantity }}</td>
+                                <td>
+                                    <button class="btn btn-danger" onclick="onDelete('{{ .Id }}')">Excluir</button>
+                                </td>
                             </tr>
                         {{ end }}
                     </tbody>
@@ -48,6 +52,17 @@
 
     </div>
 </body>
+
+<script>
+    function onDelete(id) {
+        const resp = confirm('Deseja realmente excluir este produto?');
+
+        if (!resp) {
+            return;
+        }
+        window.location.href = '/delete' + '?id=' + id;
+    }
+</script>
 
 </html>
 {{end}}
